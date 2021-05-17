@@ -1,0 +1,23 @@
+databaseChangeLog:
+  -  changeSet:
+       id:  0001-initial-schema
+       author:  oleksii
+       context: prod
+       changes:
+         - sqlFile:
+             comment: Initial Schema
+             path: migration/prod/0001-initial-schema.sql
+             relativeToChangelogFile: true
+
+
+
+# Test Data
+  -  changeSet:
+       id:  0001-initial-data
+       author:  oleksii
+       context: dev
+       changes:
+         - sqlFile:
+             comment: Initial Test Data
+             path: migration/dev/0001-initial-data.sql
+             relativeToChangelogFile: true

@@ -1,0 +1,7 @@
+spring:
+  datasource:
+    url: will be set in test
+    username: will be set in test
+    password: will be set in test
+  liquibase:
+    contexts: prod

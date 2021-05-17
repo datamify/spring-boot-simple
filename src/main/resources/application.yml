@@ -1,3 +1,12 @@
 spring:
+  profiles:
+    active: dev
+  datasource:
+    url: jdbc:postgresql://localhost:5433/spring_boot_simple
+    username: admin
+    password: admin
+    driver-class-name: org.postgresql.Driver
   jpa:
     open-in-view: false
+  liquibase:
+    contexts: prod

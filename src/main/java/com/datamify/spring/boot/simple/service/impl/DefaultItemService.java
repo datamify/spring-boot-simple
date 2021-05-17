@@ -10,9 +10,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class DefaultItemService implements ItemService {
 
     private final ProductItemRepository repository;
@@ -29,11 +31,13 @@ public class DefaultItemService implements ItemService {
     }
 
     @Override
+    @Transactional
     public Item create(CreateItemRequest createItemRequest) {
         return mapper.map(repository.save(mapper.map(createItemRequest)));
     }
 
     @Override
+    @Transactional
     public Item update(Long id, UpdateItemRequest updateItemRequest) {
         final var item = repository.getOne(id);
         mapper.map(item, updateItemRequest);
@@ -41,6 +45,7 @@ public class DefaultItemService implements ItemService {
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
         final var item = repository.getOne(id);
         repository.delete(item);
