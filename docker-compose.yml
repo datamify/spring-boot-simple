@@ -18,5 +18,22 @@ services:
     networks:
       - spring-boot-simple
 
+  app:
+    container_name: spring_boot_simple_persistence
+    build:
+      context: .
+    ports:
+      - 8080:8080
+    networks:
+      - spring-boot-simple
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/items"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
 networks:
   spring-boot-simple:
