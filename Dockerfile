@@ -1,8 +1,8 @@
-FROM openjdk:11.0.11-jdk
-
+FROM gradle:7.0.2-jdk11 AS build
 COPY . /workdir
 WORKDIR /workdir
+RUN gradle clean bootJar --no-daemon
 
-RUN ./gradlew clean bootJar
-COPY build/libs/spring-boot-simple*.jar /app.jar
+FROM openjdk:11.0.11-jre-slim
+COPY --from=build /workdir/build/libs/spring-boot-simple*.jar /app.jar
 CMD ["java", "-jar", "-Dspring.datasource.url=jdbc:postgresql://postgres:5432/spring_boot_simple", "/app.jar"]
