@@ -4,31 +4,24 @@ import com.datamify.spring.boot.simple.data.entity.ProductItem;
 import com.datamify.spring.boot.simple.service.domain.CreateItemRequest;
 import com.datamify.spring.boot.simple.service.domain.Item;
 import com.datamify.spring.boot.simple.service.domain.UpdateItemRequest;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.springframework.data.domain.Page;
-import org.springframework.stereotype.Component;
 
-@Component
-public class ProductItemMapper {
+@Mapper(componentModel = "spring")
+public interface ProductItemMapper {
 
-    public Item map(ProductItem productItem) {
-        return Item.builder()
-                .id(productItem.getId())
-                .title(productItem.getTitle())
-                .build();
-    }
-
-    public Page<Item> map(Page<ProductItem> page) {
+    default Page<Item> map(Page<ProductItem> page) {
         return page.map(this::map);
     }
 
-    public ProductItem map(CreateItemRequest createItemRequest) {
-        return ProductItem.builder()
-                .title(createItemRequest.getTitle())
-                .build();
-    }
+    Item map(ProductItem productItem);
 
-    public void map(ProductItem item, UpdateItemRequest updateItemRequest) {
-        item.setTitle(updateItemRequest.getTitle());
-    }
+    @Mapping(target = "id", ignore = true)
+    ProductItem map(CreateItemRequest createItemRequest);
+
+    @Mapping(target = "id", ignore = true)
+    void map(@MappingTarget ProductItem item, UpdateItemRequest updateItemRequest);
 
 }
