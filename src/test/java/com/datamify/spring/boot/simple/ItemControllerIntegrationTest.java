@@ -1,6 +1,7 @@
 package com.datamify.spring.boot.simple;
 
 import com.datamify.spring.boot.simple.api.dto.CreateItemDto;
+import com.datamify.spring.boot.simple.api.dto.ErrorsDto;
 import com.datamify.spring.boot.simple.api.dto.UpdateItemDto;
 import com.datamify.spring.boot.simple.service.domain.Item;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -11,6 +12,7 @@ import org.springframework.http.*;
 import org.springframework.test.context.jdbc.Sql;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -30,6 +32,14 @@ public class ItemControllerIntegrationTest extends AbstractIntegrationTest {
         assertThat(foundItem.getBody()).isNotNull();
         assertThat(foundItem.getBody().getId()).isEqualTo(1L);
         assertThat(foundItem.getBody().getTitle()).isEqualTo("Test Book");
+    }
+
+    @Test
+    public void shouldNotGetItem_NotFound() {
+        final HttpEntity<Void> entity = new HttpEntity<>(httpHeaders());
+
+        ResponseEntity<Item> foundItem = restTemplate.exchange(url("/items/-1"), HttpMethod.GET, entity, Item.class);
+        assertThat(foundItem.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
@@ -73,6 +83,34 @@ public class ItemControllerIntegrationTest extends AbstractIntegrationTest {
         assertThat(createdItem.getBody()).isNotNull();
         assertThat(createdItem.getBody().getTitle()).isEqualTo("new item");
         assertThat(createdItem.getBody().getId()).isNotNull();
+    }
+
+    @Test
+    public void shouldNotCreateItem_LongTitle() {
+        final String title = Stream.generate(() -> "a")
+                .limit(257)
+                .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append)
+                .toString();
+
+        final HttpEntity<CreateItemDto> entity = new HttpEntity<>(
+                new CreateItemDto(title),
+                httpHeaders()
+        );
+
+        ResponseEntity<ErrorsDto> error = restTemplate.exchange(
+                url("/items"),
+                HttpMethod.POST,
+                entity,
+                ErrorsDto.class
+        );
+
+        assertThat(error.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(error.getBody()).isNotNull();
+        assertThat(error.getBody().getErrors()).isNotNull();
+        assertThat(error.getBody().getErrors()).hasSize(1);
+        assertThat(error.getBody().getErrors().get(0).getMessage()).isEqualTo("size must be between 1 and 255");
+        assertThat(error.getBody().getErrors().get(0).getPath()).isEqualTo("create.createItemRequest.title");
+        assertThat(error.getBody().getErrors().get(0).getValue()).isEqualTo(title);
     }
 
     @Test
