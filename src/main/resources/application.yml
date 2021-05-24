@@ -10,3 +10,6 @@ spring:
     open-in-view: false
   liquibase:
     contexts: prod
+  redis:
+    port: 6380
+

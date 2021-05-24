@@ -5,4 +5,4 @@ RUN gradle clean bootJar --no-daemon
 
 FROM openjdk:11.0.11-jre-slim
 COPY --from=build /workdir/build/libs/spring-boot-simple*.jar /app.jar
-CMD ["java", "-jar", "-Dspring.datasource.url=jdbc:postgresql://postgres:5432/spring_boot_simple", "/app.jar"]
+CMD ["java", "-jar", "-Dspring.datasource.url=jdbc:postgresql://postgres:5432/spring_boot_simple", "-Dspring.redis.host=redis", "-Dspring.redis.port=6379", "/app.jar"]

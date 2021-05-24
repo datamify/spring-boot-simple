@@ -14,7 +14,9 @@ import org.springframework.test.context.jdbc.Sql;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static com.datamify.spring.boot.simple.config.CacheConfiguration.ITEMS_CACHE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 @Sql(scripts = {
@@ -32,6 +34,52 @@ public class ItemControllerIntegrationTest extends AbstractIntegrationTest {
         assertThat(foundItem.getBody()).isNotNull();
         assertThat(foundItem.getBody().getId()).isEqualTo(1L);
         assertThat(foundItem.getBody().getTitle()).isEqualTo("Test Book");
+    }
+
+    @Test
+    public void shouldGetItem_FromCache() {
+        final HttpEntity<Void> voidEntity = new HttpEntity<>(httpHeaders());
+
+        final HttpEntity<CreateItemDto> createEntity = new HttpEntity<>(
+                new CreateItemDto("new item for cache"),
+                httpHeaders()
+        );
+
+        ResponseEntity<Item> createdItem = restTemplate.exchange(
+                url("/items"),
+                HttpMethod.POST,
+                createEntity,
+                Item.class
+        );
+
+        assertThat(createdItem.getStatusCode()).isEqualTo(CREATED);
+
+        final Long itemId = createdItem.getBody().getId();
+
+        final ResponseEntity<Item> foundItem = restTemplate.exchange(
+                url("/items/" + itemId),
+                HttpMethod.GET,
+                voidEntity,
+                Item.class
+        );
+        assertThat(foundItem.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(foundItem.getBody()).isNotNull();
+        assertThat(foundItem.getBody().getId()).isEqualTo(itemId);
+        assertThat(foundItem.getBody().getTitle()).isEqualTo("new item for cache");
+
+        final Item item = cacheManager.getCache(ITEMS_CACHE).get(itemId, Item.class);
+        assertThat(item.getId()).isEqualTo(itemId);
+
+        final ResponseEntity<Void> deletedItem = restTemplate.exchange(
+                url("/items/" + itemId),
+                HttpMethod.DELETE,
+                voidEntity,
+                Void.class
+        );
+        assertThat(deletedItem.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+
+        final Item itemAfterDelete = cacheManager.getCache(ITEMS_CACHE).get(itemId, Item.class);
+        assertThat(itemAfterDelete).isNull();
     }
 
     @Test
@@ -79,7 +127,7 @@ public class ItemControllerIntegrationTest extends AbstractIntegrationTest {
                 Item.class
         );
 
-        assertThat(createdItem.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(createdItem.getStatusCode()).isEqualTo(CREATED);
         assertThat(createdItem.getBody()).isNotNull();
         assertThat(createdItem.getBody().getTitle()).isEqualTo("new item");
         assertThat(createdItem.getBody().getId()).isNotNull();

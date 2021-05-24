@@ -17,6 +17,19 @@ services:
       retries: 5
     networks:
       - spring-boot-simple
+    command: ["postgres", "-c", "log_statement=all", "-c", "log_destination=stderr"]
+  redis:
+    container_name: sbs_redis
+    image: redis:6.2.3
+    ports:
+      - 6380:6379
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+    networks:
+      - spring-boot-simple
 
   app:
     container_name: spring_boot_simple_persistence
@@ -28,6 +41,8 @@ services:
       - spring-boot-simple
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/items"]
