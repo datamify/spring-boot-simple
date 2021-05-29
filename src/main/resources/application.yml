@@ -13,3 +13,8 @@ spring:
   redis:
     port: 6380
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'

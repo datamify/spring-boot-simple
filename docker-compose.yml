@@ -45,7 +45,35 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/items"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
+  prometheus:
+    container_name: sbs_prometheus
+    image: prom/prometheus:v2.27.1
+    ports:
+      - 9090:9090
+    networks:
+      - spring-boot-simple
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9090" ]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    container_name: sbs_grafana
+    image: grafana/grafana:7.5.7
+    ports:
+      - 3000:3000
+    networks:
+      - spring-boot-simple
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:3030" ]
       interval: 10s
       timeout: 10s
       retries: 10
