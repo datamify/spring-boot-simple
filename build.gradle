@@ -2,6 +2,7 @@ plugins {
     id 'org.springframework.boot' version '2.4.5'
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
     id 'java'
+    id 'jacoco'
 }
 
 group = 'com.datamify.spring'
@@ -43,4 +44,35 @@ dependencies {
 
 test {
     useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+jacoco {
+    toolVersion = "0.8.7"
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        csv.required = true
+        html.required = true
+    }
+}
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.8
+            }
+        }
+        rule {
+            limit {
+                counter = 'BRANCH'
+                value = 'COVEREDRATIO'
+                minimum = 0.8
+            }
+        }
+    }
 }
